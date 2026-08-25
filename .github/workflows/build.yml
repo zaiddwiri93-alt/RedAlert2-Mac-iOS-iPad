@@ -13,16 +13,32 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Make Scripts Executable
-      run: chmod +x scripts/*.sh
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-    - name: Run Official Build Script
-      run: ./scripts/build-ios.sh --device
+    - name: Install dependencies and build web assets
+      run: |
+        npm install
+        npm run build --if-present
+
+    - name: Build iOS Xcode App
+      run: |
+        cd ios
+        xcodebuild clean build \
+          -scheme RedAlert2 \
+          -configuration Release \
+          -sdk iphoneos \
+          -derivedDataPath build \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGN_IDENTITY=""
 
     - name: Create IPA Package
       run: |
         mkdir -p Payload
-        cp -r ios/build/Release-iphoneos/*.app Payload/ 2>/dev/null || cp -r ios/build/*.app Payload/ 2>/dev/null || cp -r build/*.app Payload/
+        cp -r ios/build/Build/Products/Release-iphoneos/*.app Payload/
         zip -r RedAlert2.ipa Payload
 
     - name: Upload IPA Artifact
