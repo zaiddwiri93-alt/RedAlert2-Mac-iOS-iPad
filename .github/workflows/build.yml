@@ -13,13 +13,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build Xcode Project
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
       run: |
-        xcodebuild -project ios/RA2.xcodeproj \
-                   -scheme RA2 \
+        cd ios
+        xcodegen generate
+
+    - name: Build iOS App
+      run: |
+        cd ios
+        xcodebuild -project RedAlert2.xcodeproj \
+                   -scheme RedAlert2 \
                    -configuration Release \
                    -sdk iphoneos \
-                   -derivedDataPath ios/build \
+                   -derivedDataPath build \
                    CODE_SIGN_IDENTITY="" \
                    CODE_SIGNING_REQUIRED=NO \
                    CODE_SIGNING_ALLOWED=NO
