@@ -13,27 +13,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-    - name: Install dependencies and build web assets
-      run: |
-        npm install
-        npm run build --if-present
-
-    - name: Build iOS Xcode App
+    - name: Build Xcode Project
       run: |
         cd ios
-        xcodebuild clean build \
-          -scheme RedAlert2 \
-          -configuration Release \
-          -sdk iphoneos \
-          -derivedDataPath build \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          CODE_SIGN_IDENTITY=""
+        xcodebuild -project RedAlert2.xcodeproj \
+                   -scheme RedAlert2 \
+                   -configuration Release \
+                   -sdk iphoneos \
+                   -derivedDataPath build \
+                   CODE_SIGN_IDENTITY="" \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGNING_ALLOWED=NO
 
     - name: Create IPA Package
       run: |
