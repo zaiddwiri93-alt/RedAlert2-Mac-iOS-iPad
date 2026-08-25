@@ -13,39 +13,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install Tools
-      run: brew install xcodegen
-
     - name: Make Scripts Executable
-      run: chmod +x scripts/*.sh
+      run: chmod +x scripts/*.sh 2>/dev/null || true
 
-    - name: Download Web Assets and Generate Project
-      run: |
-        ./scripts/download-ra2-web.sh || true
-        cd ios
-        xcodegen generate || true
+    - name: Download Web Assets
+      run: ./scripts/download-ra2-web.sh || true
+
+    - name: Generate Xcode Project
+      run: xcodegen generate --spec ios/project.yml
 
     - name: Build Xcode Project
       run: |
-        cd ios
-        xcodebuild -project RA2.xcodeproj \
+        xcodebuild -project ios/RA2.xcodeproj \
                    -scheme RA2 \
                    -configuration Release \
                    -sdk iphoneos \
-                   -derivedDataPath build \
-                   CODE_SIGN_IDENTITY="" \
-                   CODE_SIGNING_REQUIRED=NO \
-                   CODE_SIGNING_ALLOWED=NO || \
-        xcodebuild -project RA2.xcodeproj \
-                   -configuration Release \
-                   -sdk iphoneos \
-                   -derivedDataPath build \
-                   CODE_SIGNING_ALLOWED=NO
+                   CODE_SIGNING_ALLOWED=NO \
+                   CODE_SIGNING_REQUIRED=NO
 
     - name: Create IPA Package
       run: |
         mkdir -p Payload
-        cp -r ios/build/Build/Products/Release-iphoneos/*.app Payload/ 2>/dev/null || cp -r build/Build/Products/Release-iphoneos/*.app Payload/ 2>/dev/null
+        cp -r ios/build/Release-iphoneos/*.app Payload/ 2>/dev/null || cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphoneos/*.app Payload/
         zip -r RedAlert2.ipa Payload
 
     - name: Upload IPA Artifact
