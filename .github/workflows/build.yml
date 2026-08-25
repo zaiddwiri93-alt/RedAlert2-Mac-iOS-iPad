@@ -13,24 +13,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Find and Build Xcode Project
-      run: |
-        PROJ_PATH=$(find . -name "*.xcodeproj" -o -name "*.xcworkspace" | head -n 1)
-        SCHEME=$(xcodebuild -list -project "$PROJ_PATH" 2>/dev/null | grep -A 10 "Schemes:" | tail -n +2 | head -n 1 | xargs)
-        
-        echo "Found Project: $PROJ_PATH"
-        echo "Found Scheme: $SCHEME"
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-        if [[ "$PROJ_PATH" == *.xcworkspace ]]; then
-          xcodebuild -workspace "$PROJ_PATH" -scheme "$SCHEME" -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-        else
-          xcodebuild -project "$PROJ_PATH" -scheme "$SCHEME" -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-        fi
+    - name: Build iOS App via xcodebuild
+      run: |
+        cd ios
+        xcodebuild -scheme RedAlert2 \
+                   -destination 'generic/platform=iOS' \
+                   -configuration Release \
+                   -derivedDataPath build \
+                   CODE_SIGN_IDENTITY="" \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGNING_ALLOWED=NO
 
     - name: Create IPA Package
       run: |
         mkdir -p Payload
-        cp -r build/Build/Products/Release-iphoneos/*.app Payload/
+        cp -r ios/build/Build/Products/Release-iphoneos/*.app Payload/
         zip -r RedAlert2.ipa Payload
 
     - name: Upload IPA Artifact
