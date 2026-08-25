@@ -13,24 +13,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+    - name: Make Scripts Executable
+      run: chmod +x scripts/*.sh
 
-    - name: Build iOS App via xcodebuild
-      run: |
-        cd ios
-        xcodebuild -scheme RedAlert2 \
-                   -destination 'generic/platform=iOS' \
-                   -configuration Release \
-                   -derivedDataPath build \
-                   CODE_SIGN_IDENTITY="" \
-                   CODE_SIGNING_REQUIRED=NO \
-                   CODE_SIGNING_ALLOWED=NO
+    - name: Run Official Build Script
+      run: ./scripts/build-ios.sh --device
 
     - name: Create IPA Package
       run: |
         mkdir -p Payload
-        cp -r ios/build/Build/Products/Release-iphoneos/*.app Payload/
+        cp -r ios/build/Release-iphoneos/*.app Payload/ 2>/dev/null || cp -r ios/build/*.app Payload/ 2>/dev/null || cp -r build/*.app Payload/
         zip -r RedAlert2.ipa Payload
 
     - name: Upload IPA Artifact
